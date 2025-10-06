@@ -70,7 +70,7 @@ const Layout: React.FC = () => {
         <aside className="hidden md:flex md:w-64 flex-col bg-white shadow-md">
           <div className="p-6">
             <Link to="/dashboard" className="text-2xl font-bold text-blue-600">
-              T23Sharing
+              Academic content sharing web app
             </Link>
           </div>
           <nav className="flex-1 px-4 py-2">
@@ -112,7 +112,7 @@ const Layout: React.FC = () => {
                 className="text-xl font-bold text-blue-600"
                 onClick={closeMenu}
               >
-                T23Sharing
+                Academic content sharing web app
               </Link>
               <button onClick={closeMenu} className="text-gray-600">
                 <X size={24} />
