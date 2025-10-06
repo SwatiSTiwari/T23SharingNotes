@@ -58,7 +58,7 @@ const Layout: React.FC = () => {
       {/* Mobile Header */}
       <header className="bg-white shadow-sm py-4 px-6 flex justify-between items-center md:hidden">
         <Link to="/dashboard" className="text-xl font-bold text-blue-600">
-          T23Sharing
+          Academic content sharing web app
         </Link>
         <button onClick={toggleMenu} className="text-gray-600">
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
