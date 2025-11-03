@@ -1,11 +1,9 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
-import ProtectedRoute from './components/ProtectedRoute';
 
 // Auth Pages
 import Login from './pages/auth/Login';
@@ -15,6 +13,7 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 // Main Pages
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import Feedback from './pages/Feedback';
 
 // Notes Pages
 import Notes from './pages/notes/Notes';
@@ -62,6 +61,9 @@ function App() {
             <Route path="announcements/new" element={<AnnouncementForm />} />
             <Route path="announcements/:id" element={<AnnouncementDetail />} />
             <Route path="announcements/:id/edit" element={<AnnouncementForm />} />
+            
+            {/* Feedback Route */}
+            <Route path="feedback" element={<Feedback />} />
           </Route>
           
           {/* Catch all */}

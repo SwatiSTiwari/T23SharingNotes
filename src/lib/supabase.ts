@@ -33,6 +33,10 @@ export type Note = {
   title: string;
   content: string;
   category_id: string | null;
+  file_url: string | null;
+  file_name: string | null;
+  file_type: string | null;
+  file_size: number | null;
   created_at: string;
   updated_at: string;
   category?: Category;
@@ -43,6 +47,10 @@ export type Assignment = {
   title: string;
   description: string;
   due_date: string;
+  file_url: string | null;
+  file_name: string | null;
+  file_type: string | null;
+  file_size: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -53,6 +61,9 @@ export type Submission = {
   user_id: string;
   content: string;
   file_url: string | null;
+  file_name: string | null;
+  file_type: string | null;
+  file_size: number | null;
   status: 'draft' | 'submitted';
   created_at: string;
   updated_at: string;
@@ -65,6 +76,10 @@ export type Announcement = {
   title: string;
   content: string;
   category_id: string | null;
+  file_url: string | null;
+  file_name: string | null;
+  file_type: string | null;
+  file_size: number | null;
   created_at: string;
   updated_at: string;
   category?: Category;
@@ -76,6 +91,18 @@ export type Comment = {
   announcement_id: string;
   user_id: string;
   content: string;
+  created_at: string;
+  updated_at: string;
+  user?: Profile;
+};
+
+export type Feedback = {
+  id: string;
+  user_id: string;
+  subject: string;
+  message: string;
+  type: 'bug' | 'feature' | 'general' | 'complaint';
+  status: 'pending' | 'reviewed' | 'resolved';
   created_at: string;
   updated_at: string;
   user?: Profile;

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
@@ -76,8 +77,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast.success('Account created successfully! Please sign in.');
         navigate('/login');
       }
-    } catch (error: any) {
-      toast.error(error.message || 'An error occurred during sign up');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message || 'An error occurred during sign up');
+      } else {
+        toast.error('An error occurred during sign up');
+      }
       console.error(error);
     } finally {
       setLoading(false);
@@ -96,8 +101,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       toast.success('Signed in successfully!');
       navigate('/dashboard');
-    } catch (error: any) {
-      toast.error(error.message || 'An error occurred during sign in');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message || 'An error occurred during sign in');
+      } else {
+        toast.error('An error occurred during sign in');
+      }
       console.error(error);
     } finally {
       setLoading(false);
@@ -112,8 +121,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       toast.success('Signed out successfully');
       navigate('/login');
-    } catch (error: any) {
-      toast.error(error.message || 'An error occurred during sign out');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message || 'An error occurred during sign out');
+      } else {
+        toast.error('An error occurred during sign out');
+      }
       console.error(error);
     } finally {
       setLoading(false);
@@ -130,8 +143,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       
       toast.success('Password reset email sent. Please check your inbox.');
-    } catch (error: any) {
-      toast.error(error.message || 'An error occurred during password reset');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message || 'An error occurred during password reset');
+      } else {
+        toast.error('An error occurred during password reset');
+      }
       console.error(error);
     } finally {
       setLoading(false);

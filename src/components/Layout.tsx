@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   Home,
+  MessageSquare,
 } from 'lucide-react';
 
 const Layout: React.FC = () => {
@@ -50,6 +51,7 @@ const Layout: React.FC = () => {
       icon: <Bell size={20} />,
       label: 'Announcements',
     },
+    { path: '/feedback', icon: <MessageSquare size={20} />, label: 'Feedback' },
     { path: '/profile', icon: <User size={20} />, label: 'Profile' },
   ];
 
