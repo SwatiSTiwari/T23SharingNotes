@@ -169,7 +169,23 @@ const AnnouncementForm: React.FC = () => {
       toast.success('File uploaded successfully');
     } catch (error) {
       console.error('Error uploading file:', error);
-      toast.error('Failed to upload file');
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to upload file';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('bucket') || error.message.includes('not found')) {
+          errorMessage = 'Storage bucket not found. Please set up storage in Supabase dashboard first. See SETUP_STORAGE.md for instructions.';
+        } else if (error.message.includes('permission') || error.message.includes('policy')) {
+          errorMessage = 'Permission denied. Please check storage policies in Supabase dashboard.';
+        } else if (error.message.includes('size')) {
+          errorMessage = 'File is too large. Maximum size is 50MB.';
+        } else {
+          errorMessage = `Upload failed: ${error.message}`;
+        }
+      }
+      
+      toast.error(errorMessage, { autoClose: 8000 });
     } finally {
       setUploading(false);
     }
