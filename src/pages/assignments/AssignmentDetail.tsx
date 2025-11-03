@@ -3,7 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
-import { ArrowLeft, Clock, FileText, Upload, Edit, Trash2, CheckCircle, X, File as FileIcon, Image as ImageIcon, Video as VideoIcon, Music, FileArchive } from 'lucide-react';
+import { ArrowLeft, Clock, FileText, Upload, Edit, Trash2, CheckCircle, X, File as FileIcon, Image as ImageIcon, Video as VideoIcon, Music, FileArchive, Download, ExternalLink } from 'lucide-react';
 import { formatDistanceToNow, isPast, format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import type { Assignment, Submission } from '../../lib/supabase';
@@ -40,7 +40,8 @@ const AssignmentDetail: React.FC = () => {
   } = useForm<SubmissionFormData>();
 
   // Helper function to get file icon
-  const getFileIcon = (fileType: string) => {
+  const getFileIcon = (fileType: string | null) => {
+    if (!fileType) return <FileIcon className="h-5 w-5" />;
     if (fileType.startsWith('image/')) return <ImageIcon className="h-5 w-5" />;
     if (fileType.startsWith('video/')) return <VideoIcon className="h-5 w-5" />;
     if (fileType.startsWith('audio/')) return <Music className="h-5 w-5" />;
@@ -50,12 +51,24 @@ const AssignmentDetail: React.FC = () => {
   };
 
   // Helper function to format file size
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes || bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  // Check if file can be previewed in browser
+  const canPreviewInBrowser = (fileType: string | null) => {
+    if (!fileType) return false;
+    return (
+      fileType.startsWith('image/') ||
+      fileType.startsWith('video/') ||
+      fileType.startsWith('audio/') ||
+      fileType === 'application/pdf' ||
+      fileType === 'text/plain'
+    );
   };
 
   useEffect(() => {
@@ -585,18 +598,95 @@ const AssignmentDetail: React.FC = () => {
                 <p className="whitespace-pre-wrap">{submission.content}</p>
               </div>
               
-              {submission.file_url && (
-                <div className="mt-4 border rounded-md p-4 bg-gray-50">
-                  <div className="flex items-center">
-                    <FileText className="h-5 w-5 text-gray-400 mr-2" />
-                    <a
-                      href={submission.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-500"
-                    >
-                      View Attached File
-                    </a>
+              {/* File Attachment Section */}
+              {submission.file_url && submission.file_name && (
+                <div className="mt-6 border-t pt-6">
+                  <h3 className="text-sm font-medium text-gray-900 mb-3">Attachment</h3>
+                  <div className="bg-gray-50 rounded-lg border border-gray-300 overflow-hidden">
+                    <div className="p-4 flex items-center justify-between">
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <div className="text-blue-600 flex-shrink-0">
+                          {getFileIcon(submission.file_type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {submission.file_name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {formatFileSize(submission.file_size)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2 ml-4">
+                        {canPreviewInBrowser(submission.file_type) ? (
+                          <a
+                            href={submission.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          >
+                            <ExternalLink className="h-4 w-4 mr-1" />
+                            Open
+                          </a>
+                        ) : (
+                          <a
+                            href={submission.file_url}
+                            download={submission.file_name}
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            Download
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Preview Section for Images, Videos, Audio, and PDFs */}
+                    {submission.file_type && (
+                      <>
+                        {submission.file_type.startsWith('image/') && (
+                          <div className="border-t border-gray-200 p-4 bg-white">
+                            <img
+                              src={submission.file_url}
+                              alt={submission.file_name}
+                              className="max-w-full h-auto rounded-lg shadow-sm"
+                            />
+                          </div>
+                        )}
+
+                        {submission.file_type.startsWith('video/') && (
+                          <div className="border-t border-gray-200 p-4 bg-black">
+                            <video
+                              controls
+                              className="max-w-full h-auto rounded-lg"
+                              preload="metadata"
+                            >
+                              <source src={submission.file_url} type={submission.file_type} />
+                              Your browser does not support the video tag.
+                            </video>
+                          </div>
+                        )}
+
+                        {submission.file_type.startsWith('audio/') && (
+                          <div className="border-t border-gray-200 p-4 bg-white">
+                            <audio controls className="w-full">
+                              <source src={submission.file_url} type={submission.file_type} />
+                              Your browser does not support the audio tag.
+                            </audio>
+                          </div>
+                        )}
+
+                        {submission.file_type === 'application/pdf' && (
+                          <div className="border-t border-gray-200 p-4 bg-gray-100">
+                            <iframe
+                              src={submission.file_url}
+                              className="w-full h-[600px] rounded-lg border-0"
+                              title={submission.file_name}
+                            />
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               )}

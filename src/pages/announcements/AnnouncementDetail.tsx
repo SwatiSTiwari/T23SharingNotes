@@ -3,7 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
-import { ArrowLeft, Edit, Trash2, Bell, MessageCircle, Send } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Bell, MessageCircle, Send, Download, FileText, File as FileIcon, Image as ImageIcon, Video as VideoIcon, Music, FileArchive, ExternalLink } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import type { Announcement, Comment, Profile } from '../../lib/supabase';
@@ -41,6 +41,38 @@ const AnnouncementDetail: React.FC = () => {
     formState: { errors },
   } = useForm<CommentFormData>();
 
+  // Helper function to get file icon
+  const getFileIcon = (fileType: string | null) => {
+    if (!fileType) return <FileIcon className="h-5 w-5" />;
+    if (fileType.startsWith('image/')) return <ImageIcon className="h-5 w-5" />;
+    if (fileType.startsWith('video/')) return <VideoIcon className="h-5 w-5" />;
+    if (fileType.startsWith('audio/')) return <Music className="h-5 w-5" />;
+    if (fileType === 'application/pdf') return <FileText className="h-5 w-5" />;
+    if (fileType.includes('zip') || fileType.includes('rar') || fileType.includes('7z')) return <FileArchive className="h-5 w-5" />;
+    return <FileIcon className="h-5 w-5" />;
+  };
+
+  // Helper function to format file size
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes || bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  // Check if file can be previewed in browser
+  const canPreviewInBrowser = (fileType: string | null) => {
+    if (!fileType) return false;
+    return (
+      fileType.startsWith('image/') ||
+      fileType.startsWith('video/') ||
+      fileType.startsWith('audio/') ||
+      fileType === 'application/pdf' ||
+      fileType === 'text/plain'
+    );
+  };
+
   useEffect(() => {
     const fetchAnnouncementAndComments = async () => {
       try {
@@ -73,9 +105,10 @@ const AnnouncementDetail: React.FC = () => {
         
         setAnnouncement(announcementData);
         setComments(commentsData || []);
-      } catch (error: any) {
+      } catch (error) {
         console.error('Error fetching announcement details:', error);
-        setError(error.message);
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -102,9 +135,10 @@ const AnnouncementDetail: React.FC = () => {
       
       toast.success('Announcement deleted successfully');
       navigate('/announcements');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting announcement:', error);
-      toast.error(error.message || 'Failed to delete announcement');
+      const message = error instanceof Error ? error.message : 'Failed to delete announcement';
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -126,9 +160,10 @@ const AnnouncementDetail: React.FC = () => {
       
       setComments(comments.filter(comment => comment.id !== commentId));
       toast.success('Comment deleted successfully');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting comment:', error);
-      toast.error(error.message || 'Failed to delete comment');
+      const message = error instanceof Error ? error.message : 'Failed to delete comment';
+      toast.error(message);
     }
   };
 
@@ -154,9 +189,10 @@ const AnnouncementDetail: React.FC = () => {
       setComments([...comments, newComment]);
       reset({ content: '' });
       toast.success('Comment added successfully');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error adding comment:', error);
-      toast.error(error.message || 'Failed to add comment');
+      const message = error instanceof Error ? error.message : 'Failed to add comment';
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -266,6 +302,99 @@ const AnnouncementDetail: React.FC = () => {
           <div className="prose max-w-none">
             <p className="whitespace-pre-wrap">{announcement.content}</p>
           </div>
+
+          {/* File Attachment Section */}
+          {announcement.file_url && announcement.file_name && (
+            <div className="mt-6 border-t pt-6">
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Attachment</h3>
+              <div className="bg-gray-50 rounded-lg border border-gray-300 overflow-hidden">
+                <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="text-blue-600 flex-shrink-0">
+                      {getFileIcon(announcement.file_type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {announcement.file_name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {formatFileSize(announcement.file_size)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 ml-4">
+                    {canPreviewInBrowser(announcement.file_type) ? (
+                      <a
+                        href={announcement.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        Open
+                      </a>
+                    ) : (
+                      <a
+                        href={announcement.file_url}
+                        download={announcement.file_name}
+                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        Download
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Preview Section for Images, Videos, Audio, and PDFs */}
+                {announcement.file_type && (
+                  <>
+                    {announcement.file_type.startsWith('image/') && (
+                      <div className="border-t border-gray-200 p-4 bg-white">
+                        <img
+                          src={announcement.file_url}
+                          alt={announcement.file_name}
+                          className="max-w-full h-auto rounded-lg shadow-sm"
+                        />
+                      </div>
+                    )}
+
+                    {announcement.file_type.startsWith('video/') && (
+                      <div className="border-t border-gray-200 p-4 bg-black">
+                        <video
+                          controls
+                          className="max-w-full h-auto rounded-lg"
+                          preload="metadata"
+                        >
+                          <source src={announcement.file_url} type={announcement.file_type} />
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                    )}
+
+                    {announcement.file_type.startsWith('audio/') && (
+                      <div className="border-t border-gray-200 p-4 bg-white">
+                        <audio controls className="w-full">
+                          <source src={announcement.file_url} type={announcement.file_type} />
+                          Your browser does not support the audio tag.
+                        </audio>
+                      </div>
+                    )}
+
+                    {announcement.file_type === 'application/pdf' && (
+                      <div className="border-t border-gray-200 p-4 bg-gray-100">
+                        <iframe
+                          src={announcement.file_url}
+                          className="w-full h-[600px] rounded-lg border-0"
+                          title={announcement.file_name}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
